@@ -1,0 +1,26 @@
+.step(class=(answerType || ''))
+  case type
+    when 'message'
+      .message!= message
+    when 'question'
+      .question!= question
+      case answerType
+        when 'multiChoice'
+          each answer in answers
+            label.answer
+              input(type='checkbox', value=answer.title)
+              != answer.title
+        when 'singleChoice'
+          each answer in answers
+            label.answer
+              input(type='radio', name='answer', value=answer.title,
+                data-next-step=answer.nextStep)
+              != answer.title
+        when 'text'
+          != label
+          input(type="text")
+        when 'multilineText'
+          != label
+          textarea
+      .footer
+        button!= buttonLabel || 'Send'
