@@ -5,6 +5,7 @@ var startServer = require('./lib/start-server');
 require('./styles/index.less');
 var iframeTemplate = require('./views/iframe.html');
 var exportMethods = require('./shared/export-methods');
+var publicMethods = require('./shared/public-methods');
 var Emitter = require('cross-emitter');
 
 /**
@@ -43,7 +44,7 @@ function Meeky(opts) {
   exportMethods({
     target: this,
     source: client,
-    methods: ['minimize', 'maximize', 'toggle', 'focus']
+    methods: publicMethods
   });
 }
 

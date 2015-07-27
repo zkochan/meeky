@@ -5,8 +5,7 @@ module.exports = function(opts) {
 
   function createPublic(methodName) {
     return function() {
-      opts.source[methodName]
-        .apply(opts.source, arguments);
+      return opts.source[methodName].apply(opts.source, arguments);
     };
   }
   for (var i = 0, len = opts.methods.length; i < len; i++) {

@@ -33,15 +33,7 @@ function Meeky(opts) {
   this._client = createClient(window.parent);
 
   this.$$surveyBox = $('body');
-}
 
-Meeky.prototype = Emitter.prototype;
-
-Meeky.prototype._resize = function() {
-  this._client.setHeight($('html').height());
-};
-
-Meeky.prototype.create = function() {
   this.$$surveyBox.append(surveyTemplate());
 
   this.$$stepContainer = $('.body');
@@ -51,6 +43,12 @@ Meeky.prototype.create = function() {
   $('.close', this.$$surveyBox).click(function() {
     _this.toggle();
   });
+}
+
+Meeky.prototype = Emitter.prototype;
+
+Meeky.prototype._resize = function() {
+  this._client.setHeight($('html').height());
 };
 
 Meeky.prototype.toggle = function() {

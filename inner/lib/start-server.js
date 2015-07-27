@@ -2,28 +2,24 @@
 var Meeky = require('./meeky');
 var Server = require('frpc/lib/server');
 var exportMethods = require('../../shared/export-methods');
+var publicMethods = require('../../shared/public-methods');
 
 module.exports = function(targetWindow) {
-  var meeky;
   var server = new Server({
     targets: [{
       window: targetWindow
     }]
   });
 
-  var methods = {};
-  methods.create = function(steps) {
-    meeky = new Meeky({
-      steps: steps
+  server.addMethod('create', function(steps) {
+    var methods = {};
+    exportMethods({
+      target: methods,
+      source: new Meeky({
+        steps: steps
+      }),
+      methods: publicMethods
     });
-    meeky.create();
-  };
-
-  exportMethods({
-    target: methods,
-    source: meeky,
-    methods: ['maximize', 'minimize', 'toggle', 'focus']
+    server.addMethods(methods);
   });
-  server.addMethods(methods);
-  server.start();
 };
