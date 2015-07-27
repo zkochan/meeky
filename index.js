@@ -23,23 +23,24 @@ function Meeky(opts) {
 
   this._steps = opts.steps;
 
-
   this._createIframe();
 
-  startServer(this._iframe.contentWindow, {
+  var commOpts = {
+    targets: [{
+      window: this._iframe.contentWindow
+    }]
+  };
+
+  startServer(commOpts, {
     iframe: this._iframe,
     $iframe: this.$$iframe
   });
 
-  var client = createClient(this._iframe.contentWindow);
+  var client = createClient(commOpts);
   client.create(this._steps);
 
 
-  Emitter.call(this, {
-    targets: [{
-      window: this._iframe.contentWindow
-    }]
-  });
+  Emitter.call(this, commOpts);
 
   exportMethods({
     target: this,

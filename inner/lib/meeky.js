@@ -14,11 +14,7 @@ var Emitter = require('cross-emitter');
  *   time.
  */
 function Meeky(opts) {
-  Emitter.call(this, {
-    targets: [{
-      window: window.parent
-    }]
-  });
+  Emitter.call(this, opts.commOpts);
 
   opts = opts || {};
 
@@ -30,7 +26,7 @@ function Meeky(opts) {
 
   this._responses = {};
 
-  this._client = createClient(window.parent);
+  this._client = createClient(opts.commOpts);
 
   this.$$surveyBox = $('body');
 
