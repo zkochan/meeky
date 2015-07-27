@@ -1,9 +1,9 @@
 'use strict';
 
-var Client = require('frpc/lib/client');
-require('./styles/index.less');
-var surveyTemplate = require('./views/survey.jade');
-var stepTemplate = require('./views/step.jade');
+var createClient = require('./create-client');
+require('../styles/index.less');
+var surveyTemplate = require('../views/survey.jade');
+var stepTemplate = require('../views/step.jade');
 
 var Emitter = require('cross-emitter');
 
@@ -30,12 +30,7 @@ function Meeky(opts) {
 
   this._responses = {};
 
-  this._client = new Client({
-    targets: [{
-      window: window.parent
-    }]
-  });
-  this._client.register(['setHeight', 'animate']);
+  this._client = createClient(window.parent);
 
   this.$$surveyBox = $('body');
 }
@@ -43,7 +38,7 @@ function Meeky(opts) {
 Meeky.prototype = Emitter.prototype;
 
 Meeky.prototype._resize = function() {
-  this._client.methods.setHeight($('html').height());
+  this._client.setHeight($('html').height());
 };
 
 Meeky.prototype.create = function() {
@@ -68,7 +63,7 @@ Meeky.prototype.toggle = function() {
 
 Meeky.prototype.maximize = function() {
   var _this = this;
-  this._client.methods.animate(0, function() {
+  this._client.animate(0, function() {
     _this._isMinimized = false;
     _this.$$surveyBox.removeClass('minimized');
     _this.emit('maximize');
@@ -79,7 +74,7 @@ Meeky.prototype.maximize = function() {
 
 Meeky.prototype.minimize = function() {
   var _this = this;
-  this._client.methods.animate(-(this.$$surveyBox.height() - 20), function() {
+  this._client.animate(-(this.$$surveyBox.height() - 20), function() {
     _this._isMinimized = true;
     _this.$$surveyBox.addClass('minimized');
     _this.emit('minimize');

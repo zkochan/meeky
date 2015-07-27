@@ -1,10 +1,10 @@
 'use strict';
 
-var Client = require('frpc/lib/client');
-var Server = require('frpc/lib/server');
+var createClient = require('./lib/create-client');
+var startServer = require('./lib/start-server');
 require('./styles/index.less');
 var iframeTemplate = require('./views/iframe.html');
-
+var exportMethods = require('./shared/export-methods');
 var Emitter = require('cross-emitter');
 
 /**
@@ -23,7 +23,33 @@ function Meeky(opts) {
   this._steps = opts.steps;
 
 
+  this._createIframe();
 
+  startServer(this._iframe.contentWindow, {
+    iframe: this._iframe,
+    $iframe: this.$$iframe
+  });
+
+  var client = createClient(this._iframe.contentWindow);
+  client.create(this._steps);
+
+
+  Emitter.call(this, {
+    targets: [{
+      window: this._iframe.contentWindow
+    }]
+  });
+
+  exportMethods({
+    target: this,
+    source: client,
+    methods: ['minimize', 'maximize', 'toggle', 'focus']
+  });
+}
+
+Meeky.prototype = Emitter.prototype;
+
+Meeky.prototype._createIframe = function() {
   var iframe = document.createElement('iframe');
   iframe.className = 'meeky-survey';
   iframe.name = 'meekySurvey';
@@ -44,70 +70,7 @@ function Meeky(opts) {
   iframe.contentWindow.document.write(iframeTemplate);
   this._iframe = iframe;
   this.$$iframe = $(iframe);
-
-  this._server = new Server({
-    targets: [{
-      window: iframe.contentWindow
-    }]
-  });
-  var isAnimating;
-  var _this = this;
-  this._server.addMethods({
-    setHeight: function(height) {
-      /*if (isAnimating || !_this.isMaximized()) {
-        return;
-      }*/
-      _this._iframe.style.height = height + 'px';
-    },
-    animate: function(bottom, cb) {
-      isAnimating = true;
-      _this.$$iframe.animate({
-        bottom: bottom + 'px',
-        duration: 'fast',
-        queue: false
-      }, function() {
-        isAnimating = false;
-        cb();
-        /* Just in case the size changed while the
-         * frame was being animated */
-        //_this._postMessage('triggerResize');
-      });
-    }
-  });
-  this._server.start();
-
-  this._client = new Client({
-    targets: [{
-      window: iframe.contentWindow
-    }]
-  });
-  this._client.register(['create', 'maximize', 'minimize', 'toggle', 'focus']);
-  this._client.methods.create(this._steps);
-
-
-  Emitter.call(this, {
-    targets: [{
-      window: iframe.contentWindow
-    }]
-  });
-
-  this._responses = {};
-
-
-  var publicMethods = ['minimize', 'maximize', 'toggle', 'focus'];
-  var _this = this;
-  function createPublic(methodName) {
-    return function() {
-      _this._client.methods[methodName]
-        .apply(_this._client.methods, arguments);
-    };
-  }
-  for (var i = 0, len = publicMethods.length; i < len; i++) {
-    this[publicMethods[i]] = createPublic(publicMethods[i]);
-  }
-}
-
-Meeky.prototype = Emitter.prototype;
+};
 
 Meeky.prototype.show = function() {
   this.$$iframe.show();
