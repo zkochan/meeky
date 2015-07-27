@@ -1,9 +1,11 @@
 'use strict';
 
-var surveyTemplate = require('./views/survey.jade');
-var stepTemplate = require('./views/step.jade');
+var Client = require('frpc/lib/client');
+var Server = require('frpc/lib/server');
+require('./styles/index.less');
+var iframeTemplate = require('./views/iframe.html');
 
-var Emitter = require('browser-emitter');
+var Emitter = require('cross-emitter');
 
 /**
  * @param {String} opts.id - Unique ID that identifies the survey.
@@ -12,8 +14,6 @@ var Emitter = require('browser-emitter');
  *   time.
  */
 function Meeky(opts) {
-  Emitter.call(this);
-
   opts = opts || {};
 
   if (!opts.steps) {
@@ -22,126 +22,99 @@ function Meeky(opts) {
 
   this._steps = opts.steps;
 
+
+
+  var iframe = document.createElement('iframe');
+  iframe.className = 'meeky-survey';
+  iframe.name = 'meekySurvey';
+  iframe.style.display = 'none';
+  iframe.frameBorder = 0;
+  iframe.tabIndex = 0;
+  iframe.width = '100%';
+  iframe.scrolling = 'no';
+  iframe.marginHeight = 0;
+  iframe.marginWidth = 0;
+  iframe.setAttribute('hspace', 0);
+  iframe.setAttribute('vspace', 0);
+  iframe.setAttribute('allowtransparency', 'true');
+  iframe.setAttribute('aria-hidden', 'true');
+
+  document.body.appendChild(iframe);
+
+  iframe.contentWindow.document.write(iframeTemplate);
+  this._iframe = iframe;
+  this.$$iframe = $(iframe);
+
+  this._server = new Server({
+    targets: [{
+      window: iframe.contentWindow
+    }]
+  });
+  var isAnimating;
+  var _this = this;
+  this._server.addMethods({
+    setHeight: function(height) {
+      /*if (isAnimating || !_this.isMaximized()) {
+        return;
+      }*/
+      _this._iframe.style.height = height + 'px';
+    },
+    animate: function(bottom, cb) {
+      isAnimating = true;
+      _this.$$iframe.animate({
+        bottom: bottom + 'px',
+        duration: 'fast',
+        queue: false
+      }, function() {
+        isAnimating = false;
+        cb();
+        /* Just in case the size changed while the
+         * frame was being animated */
+        //_this._postMessage('triggerResize');
+      });
+    }
+  });
+  this._server.start();
+
+  this._client = new Client({
+    targets: [{
+      window: iframe.contentWindow
+    }]
+  });
+  this._client.register(['create', 'maximize', 'minimize', 'toggle', 'focus']);
+  this._client.methods.create(this._steps);
+
+
+  Emitter.call(this, {
+    targets: [{
+      window: iframe.contentWindow
+    }]
+  });
+
   this._responses = {};
+
+
+  var publicMethods = ['minimize', 'maximize', 'toggle', 'focus'];
+  var _this = this;
+  function createPublic(methodName) {
+    return function() {
+      _this._client.methods[methodName]
+        .apply(_this._client.methods, arguments);
+    };
+  }
+  for (var i = 0, len = publicMethods.length; i < len; i++) {
+    this[publicMethods[i]] = createPublic(publicMethods[i]);
+  }
 }
 
-Meeky.prototype = new Emitter();
+Meeky.prototype = Emitter.prototype;
 
 Meeky.prototype.show = function() {
-  $('body').append(surveyTemplate());
-  this.$$surveyBox = $('.meeky');
-  this.$$stepContainer = $('.meeky .body');
-  this.gotoStep(this._steps.startStep);
-
-  var _this = this;
-  $('.close', this.$$surveyBox).click(function() {
-    _this.toggle();
-  });
+  this.$$iframe.show();
 };
 
 Meeky.prototype.hide = function() {
-  this.$$surveyBox.hide();
-};
-
-Meeky.prototype.toggle = function() {
-  if (this._isMinimized) {
-    this.maximize();
-    return;
-  }
-  this.minimize();
-};
-
-Meeky.prototype.maximize = function() {
-  var _this = this;
-  this.$$surveyBox.animate({
-    bottom: '0px'
-  }, function() {
-    _this._isMinimized = false;
-    _this.$$surveyBox.removeClass('minimized');
-    _this.emit('maximize');
-    _this.focus();
-  });
-};
-
-Meeky.prototype.minimize = function() {
-  var _this = this;
-  this.$$surveyBox.animate({
-    bottom: -(this.$$surveyBox.height() - 20) + 'px'
-  }, function() {
-    _this._isMinimized = true;
-    _this.$$surveyBox.addClass('minimized');
-    _this.emit('minimize');
-  });
-};
-
-Meeky.prototype.focus = function() {
-  if (this._currentStep.answerType === 'text') {
-    $('input', this.$$stepContainer).focus();
-  } else if (this._currentStep.answerType === 'multilineText') {
-    $('textarea', this.$$stepContainer).focus();
-  }
-};
-
-Meeky.prototype.gotoStep = function(step) {
-  this.$$stepContainer.html(stepTemplate(step));
-
-  this._currentStep = step;
-
-  var _this = this;
-  $('.meeky button').click(function() {
-    _this._next();
-  });
-
-  this.focus();
-};
-
-Meeky.prototype._getAnswer = function() {
-  switch (this._currentStep.answerType) {
-    case 'singleChoice':
-      return $('.meeky input:checked').val();
-    case 'multiChoice':
-      var responses = [];
-      $('.meeky input:checked').each(function() {
-        responses.push($(this).val());
-      });
-      return responses.join(',');
-    case 'text':
-      return $('.meeky input[type=text]').val();
-    case 'multilineText':
-      return $('.meeky textarea').val();
-  }
-};
-
-Meeky.prototype._sendData = function() {
-  this.emit('save', this._responses);
-};
-
-Meeky.prototype._next = function() {
-  var answer = this._getAnswer();
-
-  if (!answer) {
-    return;
-  }
-
-  this._responses[this._currentStep.question] = answer;
-
-  var nextStepName = this._currentStep.nextStep;
-  if (this._currentStep.answerType === 'singleChoice') {
-    nextStepName = $('.meeky input:checked')
-      .attr('data-next-step') || nextStepName;
-  }
-
-  var nextStep = this._steps[nextStepName];
-  this.gotoStep(nextStep);
-  if (nextStep.type === 'message') {
-    /* TODO: send the data also if the user doesn't
-     * answer to all the questions */
-    this._sendData();
-    var _this = this;
-    setTimeout(function() {
-      _this.hide();
-    }, 5000);
-  }
+  this.$$iframe.hide();
 };
 
 module.exports = Meeky;

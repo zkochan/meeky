@@ -16,3 +16,5 @@ meeky.on('save', function(answers) {
 });
 
 meeky.show();
+
+window.meeky = meeky;

@@ -1,0 +1,25 @@
+@survey-width: 300px;
+
+@media(max-width: 767px) {
+  .meeky-survey {
+    left: 3%;
+    right: 3%;
+    max-width: @survey-width;
+    width: 94%;
+    margin: 0 auto;
+  }
+}
+
+@media(min-width: 768px) {
+  .meeky-survey {
+    width: @survey-width;
+    right: 1%;
+  }
+}
+
+.meeky-survey {
+  bottom: 0;
+  position: fixed;
+  box-shadow: 0 1px 5px rgba(0,0,0,.3);
+  border-radius: 11px 11px 0 0;
+}

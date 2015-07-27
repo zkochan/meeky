@@ -24,7 +24,8 @@
   },
   "homepage": "https://github.com/zkochan/meeky#readme",
   "dependencies": {
-    "browser-emitter": "^0.7.2"
+    "cross-emitter": "0.1.2",
+    "frpc": "0.1.1"
   },
   "publishConfig": {
     "registry": "http://registry.npmjs.org"
