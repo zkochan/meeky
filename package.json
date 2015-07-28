@@ -28,7 +28,8 @@
     "cross-emitter": "0.1.2",
     "extend-functions": "^0.1.0",
     "fetch-functions": "^0.1.0",
-    "frpc": "^0.1.7"
+    "frpc": "^0.1.7",
+    "jade-polyfill": "^0.1.0"
   },
   "publishConfig": {
     "registry": "http://registry.npmjs.org"

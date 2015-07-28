@@ -1,4 +1,5 @@
 'use strict';
+require('jade-polyfill');
 var startServer = require('./lib/start-server');
 
 startServer({
