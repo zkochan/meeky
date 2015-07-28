@@ -4,7 +4,8 @@ var createClient = require('./lib/create-client');
 var startServer = require('./lib/start-server');
 require('./styles/index.less');
 var iframeTemplate = require('./views/iframe.html');
-var exportMethods = require('./shared/export-methods');
+var extendMethods = require('./shared/extend-methods');
+var filterObject = require('./shared/filter-object');
 var publicMethods = require('./shared/public-methods');
 var Emitter = require('cross-emitter');
 
@@ -39,14 +40,9 @@ function Meeky(opts) {
   var client = createClient(commOpts);
   client.create(this._steps);
 
-
   Emitter.call(this, commOpts);
 
-  exportMethods({
-    target: this,
-    source: client,
-    methods: publicMethods
-  });
+  extendMethods(this, filterObject(client, publicMethods));
 }
 
 Meeky.prototype = Emitter.prototype;

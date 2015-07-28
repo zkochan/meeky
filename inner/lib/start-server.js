@@ -1,22 +1,17 @@
 'use strict';
 var Meeky = require('./meeky');
 var Server = require('frpc/lib/server');
-var exportMethods = require('../../shared/export-methods');
 var publicMethods = require('../../shared/public-methods');
+var filterObject = require('../../shared/filter-object');
 
 module.exports = function(commOpts) {
   var server = new Server(commOpts);
 
   server.addMethod('create', function(steps) {
-    var methods = {};
-    exportMethods({
-      target: methods,
-      source: new Meeky({
-        commOpts: commOpts,
-        steps: steps
-      }),
-      methods: publicMethods
+    var meeky = new Meeky({
+      commOpts: commOpts,
+      steps: steps
     });
-    server.addMethods(methods);
+    server.addMethods(filterObject(meeky, publicMethods));
   });
 };
