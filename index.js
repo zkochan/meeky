@@ -5,7 +5,7 @@ var startServer = require('./lib/start-server');
 require('./styles/index.less');
 var iframeTemplate = require('./views/iframe.html');
 var extendMethods = require('./shared/extend-methods');
-var filterObject = require('./shared/filter-object');
+var fetchFunctions = require('fetch-functions');
 var publicMethods = require('./shared/public-methods');
 var Emitter = require('cross-emitter');
 
@@ -42,7 +42,7 @@ function Meeky(opts) {
 
   Emitter.call(this, commOpts);
 
-  extendMethods(this, filterObject(client, publicMethods));
+  extendMethods(this, fetchFunctions(client, publicMethods));
 }
 
 Meeky.prototype = Emitter.prototype;
