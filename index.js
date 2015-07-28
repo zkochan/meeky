@@ -1,5 +1,6 @@
 'use strict';
 
+var bind = require('bind-ponyfill');
 var createClient = require('./lib/create-client');
 var startServer = require('./lib/start-server');
 require('./styles/index.less');
@@ -34,7 +35,8 @@ function Meeky(opts) {
 
   startServer(commOpts, {
     iframe: this._iframe,
-    $iframe: this.$$iframe
+    $iframe: this.$$iframe,
+    hide: bind(this.hide, this)
   });
 
   var client = createClient(commOpts);

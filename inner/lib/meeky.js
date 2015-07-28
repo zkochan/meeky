@@ -138,7 +138,7 @@ Meeky.prototype._next = function() {
      * answer to all the questions */
     this._sendData();
     setTimeout(bind(function() {
-      this.hide();
+      this._client.hide();
     }, this), 5000);
   }
 };
