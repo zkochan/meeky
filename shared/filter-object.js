@@ -1,5 +1,5 @@
 'use strict';
-var bind = require('./bind');
+var bind = require('bind-ponyfill');
 
 module.exports = function(obj, keys) {
   var result = {};

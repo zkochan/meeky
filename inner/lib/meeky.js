@@ -1,5 +1,6 @@
 'use strict';
 
+var bind = require('bind-ponyfill');
 var createClient = require('./create-client');
 require('../styles/index.less');
 var surveyTemplate = require('../views/survey.jade');
@@ -35,10 +36,9 @@ function Meeky(opts) {
   this.$$stepContainer = $('.body');
   this.gotoStep(this._steps.startStep);
 
-  var _this = this;
-  $('.close', this.$$surveyBox).click(function() {
-    _this.toggle();
-  });
+  $('.close', this.$$surveyBox).click(bind(function() {
+    this.toggle();
+  }, this));
 }
 
 Meeky.prototype = Emitter.prototype;
@@ -56,24 +56,22 @@ Meeky.prototype.toggle = function() {
 };
 
 Meeky.prototype.maximize = function() {
-  var _this = this;
-  this._client.animate(0, function() {
-    _this._isMinimized = false;
-    _this.$$surveyBox.removeClass('minimized');
-    _this.emit('maximize');
-    _this.focus();
-    _this._resize();
-  });
+  this._client.animate(0, bind(function() {
+    this._isMinimized = false;
+    this.$$surveyBox.removeClass('minimized');
+    this.emit('maximize');
+    this.focus();
+    this._resize();
+  }, this));
 };
 
 Meeky.prototype.minimize = function() {
-  var _this = this;
-  this._client.animate(-(this.$$surveyBox.height() - 20), function() {
-    _this._isMinimized = true;
-    _this.$$surveyBox.addClass('minimized');
-    _this.emit('minimize');
-    _this._resize();
-  });
+  this._client.animate(-(this.$$surveyBox.height() - 20), bind(function() {
+    this._isMinimized = true;
+    this.$$surveyBox.addClass('minimized');
+    this.emit('minimize');
+    this._resize();
+  }, this));
 };
 
 Meeky.prototype.focus = function() {
@@ -90,10 +88,9 @@ Meeky.prototype.gotoStep = function(step) {
 
   this._currentStep = step;
 
-  var _this = this;
-  $('button').click(function() {
-    _this._next();
-  });
+  $('button').click(bind(function() {
+    this._next();
+  }, this));
 
   this.focus();
 };
@@ -140,10 +137,9 @@ Meeky.prototype._next = function() {
     /* TODO: send the data also if the user doesn't
      * answer to all the questions */
     this._sendData();
-    var _this = this;
-    setTimeout(function() {
-      _this.hide();
-    }, 5000);
+    setTimeout(bind(function() {
+      this.hide();
+    }, this), 5000);
   }
 };
 
