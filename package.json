@@ -25,7 +25,7 @@
   "homepage": "https://github.com/zkochan/meeky#readme",
   "dependencies": {
     "bind-ponyfill": "0.1.0",
-    "cross-emitter": "0.1.2",
+    "cross-emitter": "0.2.0",
     "extend-functions": "^0.1.0",
     "fetch-functions": "^0.1.0",
     "frpc": "^0.1.7",
